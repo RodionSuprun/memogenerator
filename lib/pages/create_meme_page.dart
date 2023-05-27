@@ -91,30 +91,47 @@ class CreateMemePageContent extends StatelessWidget {
                     builder: (context, snapshot) {
                       final memeTexts =
                           snapshot.hasData ? snapshot.data! : <MemeText>[];
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: memeTexts.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final MemeText item = memeTexts[index];
-                          return ListTile(
-                            memeText: item,
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) {
-                          return Container(
-                            height: 1,
-                            margin: EdgeInsets.only(left: 16),
-                            color: AppColors.darkGrey,
-                          );
-                        },
-                      );
+                      return getMemTextsList(memeTexts);
                     })
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget getMemTextsList(List<MemeText> list) {
+    final result = <Widget>[];
+    for (var i = 0; i < list.length; i++) {
+      result.add(
+        ListTile(
+          memeText: list[i],
+        ),
+      );
+      if (i != list.length - 1) {
+        result.add(DividerWidget());
+      }
+    }
+
+    final column = Column(
+      children: result,
+    );
+    return column;
+  }
+}
+
+class DividerWidget extends StatelessWidget {
+  const DividerWidget({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: EdgeInsets.only(left: 16),
+      color: AppColors.darkGrey,
     );
   }
 }
@@ -135,8 +152,10 @@ class ListTile extends StatelessWidget {
           return Container(
             height: 48,
             alignment: Alignment.centerLeft,
-            color: selectedMemeText != null &&
-                selectedMemeText.id == memeText.id ? AppColors.darkGrey16 : Colors.transparent,
+            color:
+                selectedMemeText != null && selectedMemeText.id == memeText.id
+                    ? AppColors.darkGrey16
+                    : Colors.transparent,
             padding: EdgeInsets.symmetric(
               horizontal: 16,
             ),
@@ -145,6 +164,7 @@ class ListTile extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w400,
                 fontSize: 16,
+                color: AppColors.darkGrey
               ),
             ),
           );
@@ -417,7 +437,7 @@ class _EditTextBarState extends State<EditTextBar> {
                 ),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: const BorderSide(
-                    color: AppColors.fuchsia,
+                    color: AppColors.fuchsia38,
                     width: 1,
                   ),
                 ),
