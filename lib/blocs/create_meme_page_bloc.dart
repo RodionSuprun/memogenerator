@@ -12,6 +12,20 @@ class CreateMemePageBloc {
   Stream<MemeText?> observeSelectedMemeText() =>
       selectedMemeTextSubject.distinct();
 
+  Stream<List<MemeTextWithSelection>> observeMemeTextsWithSelection() {
+    return Rx.combineLatest2<List<MemeText>, MemeText?,
+            List<MemeTextWithSelection>>(
+        observeMemeTexts(), observeSelectedMemeText(),
+        (memeTexts, selectedMemeText) {
+      return memeTexts.map((memeText) {
+        return MemeTextWithSelection(
+          memeText: memeText,
+          selected: memeText.id == selectedMemeText?.id,
+        );
+      }).toList();
+    });
+  }
+
   CreateMemePageBloc() {}
 
   void addNewText() {
@@ -44,8 +58,10 @@ class CreateMemePageBloc {
   }
 
   bool isMemeTextSelected(final String id) {
-    final foundMemeText = memeTextSubject.value.firstWhereOrNull((memeText) => memeText.id == id);
-    if (foundMemeText != null && foundMemeText == selectedMemeTextSubject.value) {
+    final foundMemeText =
+        memeTextSubject.value.firstWhereOrNull((memeText) => memeText.id == id);
+    if (foundMemeText != null &&
+        foundMemeText == selectedMemeTextSubject.value) {
       return true;
     }
     return false;
@@ -82,4 +98,27 @@ class MemeText {
 
   @override
   int get hashCode => id.hashCode ^ text.hashCode;
+}
+
+class MemeTextWithSelection {
+  final MemeText memeText;
+  final bool selected;
+
+  MemeTextWithSelection({required this.memeText, required this.selected});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MemeTextWithSelection &&
+          runtimeType == other.runtimeType &&
+          memeText == other.memeText &&
+          selected == other.selected;
+
+  @override
+  int get hashCode => memeText.hashCode ^ selected.hashCode;
+
+  @override
+  String toString() {
+    return 'MemeTextWithSelection{memeText: $memeText, selected: $selected}';
+  }
 }
