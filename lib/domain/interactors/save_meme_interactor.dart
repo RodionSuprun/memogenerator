@@ -51,7 +51,7 @@ class SaveMemeInteractor {
       print("Размер старого файла - $oldFileLength");
       print("Размер нового файла - $newFileLength");
 
-      if (oldFileLength != newFileLength) {
+      if (oldFileLength == newFileLength) {
         print("Старый и новый файл имеют одинаковый размер, не сохраняем");
       } else {
         final fileNameWithType =
