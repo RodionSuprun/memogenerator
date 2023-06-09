@@ -170,19 +170,25 @@ class BottomMemeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      alignment: Alignment.centerLeft,
-      color: memeText.selected ? AppColors.darkGrey16 : Colors.transparent,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
-      child: Text(
-        memeText.memeText.text,
-        style: TextStyle(
-            fontWeight: FontWeight.w400,
-            fontSize: 16,
-            color: AppColors.darkGrey),
+    final bloc = Provider.of<CreateMemePageBloc>(context, listen: false);
+    return GestureDetector(
+      onTap: () {
+        bloc.selectMemeText(memeText.memeText.id);
+      },
+      child: Container(
+        height: 48,
+        alignment: Alignment.centerLeft,
+        color: memeText.selected ? AppColors.darkGrey16 : Colors.transparent,
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+        ),
+        child: Text(
+          memeText.memeText.text,
+          style: TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 16,
+              color: AppColors.darkGrey),
+        ),
       ),
     );
   }
