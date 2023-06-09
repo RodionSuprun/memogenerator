@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:memogenerator/presentation/create_meme/create_meme_page_bloc.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_selection.dart';
@@ -215,17 +216,16 @@ class MemeCanvasWidget extends StatelessWidget {
           child: Stack(
             children: [
               StreamBuilder<String?>(
-                stream: bloc.observeMemePath(),
-                builder: (context, snapshot) {
-                  final path = snapshot.hasData ? snapshot.data! : null;
-                  if (path == null) {
-                    return Container(
-                      color: Colors.white,
-                    );
-                  }
-                  return Image.file(File(path));
-                }
-              ),
+                  stream: bloc.observeMemePath(),
+                  builder: (context, snapshot) {
+                    final path = snapshot.hasData ? snapshot.data! : null;
+                    if (path == null) {
+                      return Container(
+                        color: Colors.white,
+                      );
+                    }
+                    return Image.file(File(path));
+                  }),
               StreamBuilder<List<MemeTextWithOffset>>(
                 initialData: <MemeTextWithOffset>[],
                 stream: bloc.observeMemeTextsWithOffsets(),
@@ -281,11 +281,18 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
   @override
   void initState() {
     super.initState();
-
     top = widget.memeTextWithOffset.offset?.dy ??
         widget.parentConstraints.maxHeight / 2;
     left = widget.memeTextWithOffset.offset?.dx ??
         widget.parentConstraints.maxWidth / 3;
+
+    if (widget.memeTextWithOffset.offset == null) {
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        final bloc = Provider.of<CreateMemePageBloc>(context, listen: false);
+        bloc.changeMemeTextOffset(
+            widget.memeTextWithOffset.id, Offset(left, top));
+      });
+    }
   }
 
   @override
