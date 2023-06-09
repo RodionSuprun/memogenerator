@@ -1,17 +1,16 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 
-import 'package:memogenerator/data/memes_repository.dart';
+import 'package:memogenerator/data/repositories/memes_repository.dart';
 import 'package:memogenerator/data/models/meme.dart';
 import 'package:memogenerator/data/models/position.dart';
 import 'package:memogenerator/data/models/text_with_position.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
+import '../../domain/interactors/save_meme_interactor.dart';
 import 'models/meme_text.dart';
 import 'models/meme_text_with_selection.dart';
 
@@ -123,42 +122,17 @@ class CreateMemePageBloc {
         position: position,
       );
     }).toList();
-    saveMemeSubscription =
-        _saveMemeInternal(textsWithPositions).asStream().listen((event) {
+    saveMemeSubscription = SaveMemeInteractor.getInstance()
+        .saveMeme(
+            id: id,
+            textWithPositions: textsWithPositions,
+            imagePath: memePathSubject.value)
+        .asStream()
+        .listen((event) {
       print("Meme saved");
     }, onError: (error, stackTrace) {
       print("Error in saveMemeSubscription $error");
     });
-  }
-
-  Future<bool> _saveMemeInternal(
-    final List<TextWithPosition> textsWithPositions,
-  ) async {
-    final imagePath = memePathSubject.value;
-    if (imagePath == null) {
-
-      final meme = Meme(
-        id: id,
-        texts: textsWithPositions,
-      );
-
-      return MemesRepository.getInstance().addToMemes(meme);
-    }
-    final docsPath = await getApplicationDocumentsDirectory();
-    final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}memes";
-    await Directory(memePath).create(recursive: true);
-    final imageName = imagePath.split(Platform.pathSeparator).last;
-    final newImagePath = "$memePath${Platform.pathSeparator}$imageName";
-    final tempFile = File(imagePath);
-    await tempFile.copy(newImagePath);
-
-    final meme = Meme(
-      id: id,
-      texts: textsWithPositions,
-      memePath: newImagePath,
-    );
-
-    return MemesRepository.getInstance().addToMemes(meme);
   }
 
   void _subscribeToNewMemeTextOffset() {

@@ -4,7 +4,7 @@ import 'package:memogenerator/data/shared_preferences_data.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 
-import 'models/meme.dart';
+import '../models/meme.dart';
 
 class MemesRepository {
   final SharedPreferencesData spData;
@@ -18,33 +18,40 @@ class MemesRepository {
 
   MemesRepository._internal(this.spData);
 
-  Future<bool> addToMemes(final Meme meme) async {
-    final rawMemes = await spData.getMemes();
-    rawMemes.add(json.encode(meme.toJson()));
-    return _setRawMemes(rawMemes);
+  Future<bool> addToMemes(final Meme newMeme) async {
+    final memes = await getMemes();
+
+    final elementIndex =
+        memes.indexWhere((element) => element.id == newMeme.id);
+    if (elementIndex == -1) {
+      memes.add(newMeme);
+    } else {
+      memes[elementIndex] = newMeme;
+    }
+    return _setMemes(memes);
   }
 
   Future<bool> removeFromMemes(final String id) async {
-    final superHeroes = await _getMemes();
-    superHeroes.removeWhere((meme) => meme.id == id);
-    return _setMemes(superHeroes);
+    final memes = await getMemes();
+    memes.removeWhere((meme) => meme.id == id);
+    return _setMemes(memes);
   }
 
   Future<Meme?> getMeme(final String id) async {
-    final memes = await _getMemes();
+    final memes = await getMemes();
     return memes.firstWhereOrNull((meme) {
       return meme.id == id;
     });
   }
 
   Stream<List<Meme>> observeMemes() async* {
-    yield await _getMemes();
+    yield await getMemes();
     await for (final _ in updater) {
-      yield await _getMemes();
+      yield await getMemes();
     }
   }
 
-  Future<List<Meme>> _getMemes() async {
+  Future<List<Meme>> getMemes() async {
     final rawMemes = await spData.getMemes();
     return rawMemes
         .map((rawMeme) => Meme.fromJson(json.decode(rawMeme)))
@@ -52,9 +59,7 @@ class MemesRepository {
   }
 
   Future<bool> _setMemes(final List<Meme> memes) async {
-    final rawMemes = memes
-        .map((meme) => json.encode(meme.toJson()))
-        .toList();
+    final rawMemes = memes.map((meme) => json.encode(meme.toJson())).toList();
     return _setRawMemes(rawMemes);
   }
 
@@ -62,5 +67,4 @@ class MemesRepository {
     updater.add(null);
     return await spData.setMemes(rawMemes);
   }
-
 }
