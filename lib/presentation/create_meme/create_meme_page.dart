@@ -1,11 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:memogenerator/presentation/create_meme/create_meme_page_bloc.dart';
+import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
+import 'package:memogenerator/presentation/create_meme/models/meme_text_with_selection.dart';
 import 'package:memogenerator/resources/app_colors.dart';
 import 'package:provider/provider.dart';
 
-import '../blocs/create_meme_page_bloc.dart';
+import 'models/meme_text.dart';
 
 class CreateMemePage extends StatefulWidget {
-  const CreateMemePage({Key? key}) : super(key: key);
+  final String? id;
+  final String? selectedMemePath;
+
+  const CreateMemePage({Key? key, this.id, this.selectedMemePath})
+      : super(key: key);
 
   @override
   State<CreateMemePage> createState() => _CreateMemePageState();
@@ -17,7 +26,10 @@ class _CreateMemePageState extends State<CreateMemePage> {
   @override
   void initState() {
     super.initState();
-    bloc = CreateMemePageBloc();
+    bloc = CreateMemePageBloc(
+      id: widget.id,
+      selectedMemePath: widget.selectedMemePath,
+    );
   }
 
   @override
@@ -38,6 +50,20 @@ class _CreateMemePageState extends State<CreateMemePage> {
             ),
           ),
           bottom: EditTextBar(),
+          actions: [
+            GestureDetector(
+              onTap: () => bloc.saveMeme(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                child: Icon(
+                  Icons.save,
+                  color: AppColors.darkGrey,
+                ),
+              ),
+            )
+          ],
         ),
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -180,27 +206,44 @@ class MemeCanvasWidget extends StatelessWidget {
           onTap: () {
             bloc.deselectMemeText();
           },
-          child: Container(
-            color: Colors.white,
-            child: StreamBuilder<List<MemeText>>(
-                initialData: <MemeText>[],
-                stream: bloc.observeMemeTexts(),
+          child: Stack(
+            children: [
+              StreamBuilder<String?>(
+                stream: bloc.observeMemePath(),
                 builder: (context, snapshot) {
-                  final memeTexts =
-                      snapshot.hasData ? snapshot.data! : <MemeText>[];
-                  return LayoutBuilder(builder: (context, constraints) {
-                    return Stack(
-                      children: memeTexts
-                          .map(
-                            (memeText) => DraggableMemeText(
-                              memeText: memeText,
-                              parentConstraints: constraints,
-                            ),
-                          )
-                          .toList(),
+                  final path = snapshot.hasData ? snapshot.data! : null;
+                  if (path == null) {
+                    return Container(
+                      color: Colors.white,
                     );
-                  });
-                }),
+                  }
+                  return Image.file(File(path));
+                }
+              ),
+              StreamBuilder<List<MemeTextWithOffset>>(
+                initialData: <MemeTextWithOffset>[],
+                stream: bloc.observeMemeTextsWithOffsets(),
+                builder: (context, snapshot) {
+                  final memeTextWithOffsets = snapshot.hasData
+                      ? snapshot.data!
+                      : <MemeTextWithOffset>[];
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Stack(
+                        children: memeTextWithOffsets
+                            .map(
+                              (memeText) => DraggableMemeText(
+                                memeTextWithOffset: memeText,
+                                parentConstraints: constraints,
+                              ),
+                            )
+                            .toList(),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -209,12 +252,12 @@ class MemeCanvasWidget extends StatelessWidget {
 }
 
 class DraggableMemeText extends StatefulWidget {
-  final MemeText memeText;
+  final MemeTextWithOffset memeTextWithOffset;
   final BoxConstraints parentConstraints;
 
   const DraggableMemeText({
     Key? key,
-    required this.memeText,
+    required this.memeTextWithOffset,
     required this.parentConstraints,
   }) : super(key: key);
 
@@ -233,8 +276,10 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
   void initState() {
     super.initState();
 
-    top = widget.parentConstraints.maxHeight / 2;
-    left = widget.parentConstraints.maxWidth / 3;
+    top = widget.memeTextWithOffset.offset?.dy ??
+        widget.parentConstraints.maxHeight / 2;
+    left = widget.memeTextWithOffset.offset?.dx ??
+        widget.parentConstraints.maxWidth / 3;
   }
 
   @override
@@ -247,15 +292,18 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          bloc.selectMemeText(widget.memeText.id);
+          bloc.selectMemeText(widget.memeTextWithOffset.id);
         },
         onPanStart: (details) {
-          bloc.selectMemeText(widget.memeText.id);
+          bloc.selectMemeText(widget.memeTextWithOffset.id);
         },
         onPanUpdate: (details) {
           setState(() {
             left = calculateLeft(details);
             top = calculateTop(details);
+
+            bloc.changeMemeTextOffset(
+                widget.memeTextWithOffset.id, Offset(left, top));
           });
         },
         child: StreamBuilder<MemeText?>(
@@ -263,11 +311,11 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
             builder: (context, snapshot) {
               final MemeText? memeText =
                   snapshot.hasData ? snapshot.data : null;
-              final selected = widget.memeText.id == memeText?.id;
+              final selected = widget.memeTextWithOffset.id == memeText?.id;
               return MemeTextOnCanvas(
                   padding: padding,
                   parentConstraints: widget.parentConstraints,
-                  memeText: widget.memeText,
+                  text: widget.memeTextWithOffset.text,
                   selected: selected);
             }),
       ),
@@ -307,11 +355,11 @@ class MemeTextOnCanvas extends StatelessWidget {
     Key? key,
     required this.padding,
     required this.parentConstraints,
-    required this.memeText,
+    required this.text,
     required this.selected,
   }) : super(key: key);
 
-  final MemeText memeText;
+  final String text;
   final bool selected;
   final double padding;
   final BoxConstraints parentConstraints;
@@ -328,7 +376,7 @@ class MemeTextOnCanvas extends StatelessWidget {
           border: selected ? Border.all(color: AppColors.fuchsia) : null),
       padding: EdgeInsets.all(padding),
       child: Text(
-        memeText.text,
+        text,
         textAlign: TextAlign.center,
         style: TextStyle(
           color: Colors.black,

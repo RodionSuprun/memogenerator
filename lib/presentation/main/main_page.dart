@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:memogenerator/pages/create_meme_page.dart';
+import 'package:memogenerator/presentation/create_meme/create_meme_page.dart';
 import 'package:memogenerator/resources/app_colors.dart';
 import 'package:provider/provider.dart';
 
-import '../blocs/main_bloc.dart';
+import '../../data/models/meme.dart';
+import 'main_bloc.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -41,10 +42,19 @@ class _MainPageState extends State<MainPage> {
         ),
         backgroundColor: Colors.white,
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
+          onPressed: () async {
+            final selectedMemePath = await bloc.selectMeme();
+            if (selectedMemePath == null) {
+              return;
+            }
+
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => CreateMemePage(),
+                builder: (context) {
+                  return CreateMemePage(
+                    selectedMemePath: selectedMemePath,
+                  );
+                },
               ),
             );
           },
@@ -73,8 +83,34 @@ class MainPageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Stack(
-      children: [],
-    );
+    final bloc = Provider.of<MainBloc>(context, listen: false);
+    return StreamBuilder<List<Meme>>(
+        stream: bloc.observeMemes,
+        initialData: <Meme>[],
+        builder: (context, snapshot) {
+          final items = snapshot.hasData ? snapshot.data! : const <Meme>[];
+          return ListView(
+            children: items.map((item) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return CreateMemePage(id: item.id);
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                    height: 48,
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
+                    child: Text(item.id)),
+              );
+            }).toList(),
+          );
+        });
   }
 }
