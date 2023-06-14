@@ -19,4 +19,8 @@ class Meme extends Equatable{
 
   @override
   List<Object?> get props => [id, texts, memePath];
+
+  Meme copyWithChangedMemePath(final String? memePath) {
+    return Meme(id: id, texts: texts, memePath: memePath);
+  }
 }

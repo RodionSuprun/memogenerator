@@ -19,7 +19,7 @@ class SaveMemeInteractor {
 
   static const memesPathName = "memes";
 
-  Future<bool> saveMeme({
+  Future<Meme> saveMeme({
     required final String id,
     required final List<TextWithPosition> textWithPositions,
     required final ScreenshotController screenshotController,
@@ -31,7 +31,8 @@ class SaveMemeInteractor {
         texts: textWithPositions,
       );
 
-      return MemesRepository.getInstance().addToMemes(meme);
+      await MemesRepository.getInstance().addToMemes(meme);
+      return meme;
     }
     await ScreenshotInteractor.getInstance().saveThumbnail(id, screenshotController);
     await createNewFile(imagePath);
@@ -42,7 +43,8 @@ class SaveMemeInteractor {
       memePath: imagePath,
     );
 
-    return MemesRepository.getInstance().addToMemes(meme);
+    await MemesRepository.getInstance().addToMemes(meme);
+    return meme;
   }
 
   Future<void> createNewFile(final String imagePath) async {
