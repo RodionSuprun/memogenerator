@@ -14,6 +14,8 @@ class TextWithPosition extends Equatable {
   final double? fontSize;
   @JsonKey(toJson: colorToJson, fromJson: colorFromJson)
   final Color? color;
+  @JsonKey(toJson: fontWeightToJson, fromJson: fontWeightFromJson)
+  final FontWeight? fontWeight;
 
   TextWithPosition({
     required this.id,
@@ -21,6 +23,7 @@ class TextWithPosition extends Equatable {
     required this.position,
     this.fontSize,
     this.color,
+    this.fontWeight,
   });
 
   factory TextWithPosition.fromJson(Map<String, dynamic> json) =>
@@ -29,7 +32,7 @@ class TextWithPosition extends Equatable {
   Map<String, dynamic> toJson() => _$TextWithPositionToJson(this);
 
   @override
-  List<Object?> get props => [id, text, position, fontSize, color];
+  List<Object?> get props => [id, text, position, fontSize, color, fontWeight];
 }
 
 String? colorToJson(final Color? color) {
@@ -43,4 +46,16 @@ Color? colorFromJson(final String? colorString) {
 
   final intColor = int.tryParse(colorString, radix: 16);
   return intColor == null ? null : Color(intColor);
+}
+
+String? fontWeightToJson(final FontWeight? fontWeight) {
+  return fontWeight == null ? null : fontWeight.toString();
+}
+
+FontWeight? fontWeightFromJson(final String? fontWeightString) {
+  if (fontWeightString == null) {
+    return null;
+  }
+  final fontWeightValue = int.tryParse(fontWeightString.split("w").last);
+  return fontWeightValue == null ? null : FontWeight.values[(fontWeightValue / 100).round() - 1];
 }

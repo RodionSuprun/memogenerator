@@ -21,12 +21,14 @@ class FontSettingsBottomSheet extends StatefulWidget {
 class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
   late double fontSize;
   late Color color;
+  late FontWeight fontWeight;
 
   @override
   void initState() {
     super.initState();
     fontSize = widget.memeText.fontSize;
     color = widget.memeText.color;
+    fontWeight = widget.memeText.fontWeight;
   }
 
   @override
@@ -49,7 +51,7 @@ class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
             ),
           ),
           SizedBox(
-            height: 16,
+            height: 24,
           ),
           MemeTextOnCanvas(
             padding: 8,
@@ -58,6 +60,7 @@ class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
             selected: true,
             fontSize: fontSize,
             color: color,
+            fontWeight: fontWeight,
           ),
           SizedBox(
             height: 48,
@@ -79,6 +82,16 @@ class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
             });
           }),
           SizedBox(
+            height: 24,
+          ),
+          FontWeightSlider(
+              initialFontWeight: fontWeight,
+              changeFontWeight: (value) {
+                setState(() {
+                  fontWeight = value;
+                });
+              }),
+          SizedBox(
             height: 36,
           ),
           Align(
@@ -87,6 +100,7 @@ class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
               textId: widget.memeText.id,
               color: color,
               fontSize: fontSize,
+              fontWeight: fontWeight,
             ),
           ),
           SizedBox(
@@ -102,12 +116,14 @@ class Buttons extends StatelessWidget {
   final String textId;
   final Color color;
   final double fontSize;
+  final FontWeight fontWeight;
 
   const Buttons({
     Key? key,
     required this.textId,
     required this.color,
     required this.fontSize,
+    required this.fontWeight,
   }) : super(key: key);
 
   @override
@@ -128,7 +144,7 @@ class Buttons extends StatelessWidget {
         ),
         AppButton(
           onTap: () {
-            bloc.changeFontSettings(textId, color, fontSize);
+            bloc.changeFontSettings(textId, color, fontSize, fontWeight);
             Navigator.of(context).pop();
           },
           text: "Сохранить",
@@ -281,6 +297,83 @@ class _FontSizeSliderState extends State<FontSizeSlider> {
                 setState(() {
                   fontSize = value;
                   widget.changeFontSize(value);
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class FontWeightSlider extends StatefulWidget {
+  const FontWeightSlider({
+    Key? key,
+    required this.initialFontWeight,
+    required this.changeFontWeight,
+  }) : super(key: key);
+
+  final FontWeight initialFontWeight;
+
+  final ValueChanged<FontWeight> changeFontWeight;
+
+  @override
+  State<FontWeightSlider> createState() => _FontWeightSliderState();
+}
+
+class _FontWeightSliderState extends State<FontWeightSlider> {
+  late FontWeight fontWeight;
+  late double fontWeightIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    fontWeight = widget.initialFontWeight;
+    fontWeightIndex = FontWeight.values.indexOf(fontWeight).toDouble();
+    print(fontWeightIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 16,
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 8,
+          ),
+          child: Text(
+            "Font Weight:",
+            style: TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 20,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        Expanded(
+          child: SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: AppColors.fuchsia,
+              inactiveTrackColor: AppColors.fuchsia38,
+              thumbColor: AppColors.fuchsia,
+              inactiveTickMarkColor: AppColors.fuchsia,
+              valueIndicatorColor: AppColors.fuchsia,
+            ),
+            child: Slider(
+              min: 0,
+              max: FontWeight.values.length - 1,
+              divisions: FontWeight.values.length,
+              value: fontWeightIndex,
+              onChanged: (double value) {
+                setState(() {
+                  fontWeightIndex = value;
+                  print(FontWeight.values[fontWeightIndex.toInt()]);
+                  widget.changeFontWeight(
+                      FontWeight.values[fontWeightIndex.toInt()]);
                 });
               },
             ),

@@ -48,8 +48,7 @@ class CreateMemePageBloc {
           return memeTextOffset.id == memeText.id;
         });
         return MemeTextWithOffset(
-            memeText: memeText,
-            offset: memeTextOffset?.offset);
+            memeText: memeText, offset: memeTextOffset?.offset);
       }).toList();
     });
   }
@@ -135,6 +134,7 @@ class CreateMemePageBloc {
     final String textId,
     final Color color,
     final double fontSize,
+    final FontWeight fontWeight,
   ) {
     final copiedList = [...memeTextSubject.value];
     final index = copiedList.indexWhere((memeText) => memeText.id == textId);
@@ -146,10 +146,7 @@ class CreateMemePageBloc {
     copiedList.removeAt(index);
     copiedList.insert(
       index,
-      oldMemeText.copyWithChangedFontSettings(
-        color,
-        fontSize,
-      ),
+      oldMemeText.copyWithChangedFontSettings(color, fontSize, fontWeight),
     );
     memeTextSubject.add(copiedList);
   }
@@ -172,6 +169,7 @@ class CreateMemePageBloc {
         position: position,
         fontSize: memeText.fontSize,
         color: memeText.color,
+        fontWeight: memeText.fontWeight
       );
     }).toList();
     saveMemeSubscription = SaveMemeInteractor.getInstance()
