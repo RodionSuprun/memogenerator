@@ -41,57 +41,67 @@ class _CreateMemePageState extends State<CreateMemePage> {
   Widget build(BuildContext context) {
     return Provider.value(
       value: bloc,
-      child: WillPopScope(
-        onWillPop: () async {
-          final goBack = await _showConfirmationExitDialog(context);
-          return goBack ?? false;
-        },
-        child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          appBar: AppBar(
-            centerTitle: false,
-            backgroundColor: AppColors.lemon,
-            foregroundColor: AppColors.darkGrey,
-            title: Text(
-              "Создаем мем",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 20,
+      child: StreamBuilder<bool>(
+        initialData: false,
+        stream: bloc.observeShowDialog(),
+        builder: (context, snapshot) {
+          final showDialog = snapshot.hasData ? snapshot.data! : false;
+          print("HEkko work");
+          print(showDialog);
+          return WillPopScope(
+            onWillPop: () async {
+              bloc.compareAll();
+              final goBack = showDialog == true ? await _showConfirmationExitDialog(context) : true;
+              return goBack ?? false;
+            },
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: AppBar(
+                centerTitle: false,
+                backgroundColor: AppColors.lemon,
+                foregroundColor: AppColors.darkGrey,
+                title: Text(
+                  "Создаем мем",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 20,
+                  ),
+                ),
+                bottom: EditTextBar(),
+                actions: [
+                  GestureDetector(
+                    onTap: () => bloc.shareMeme(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: Icon(
+                        Icons.share,
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => bloc.saveMeme(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: Icon(
+                        Icons.save,
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.white,
+              body: SafeArea(
+                child: CreateMemePageContent(),
               ),
             ),
-            bottom: EditTextBar(),
-            actions: [
-              GestureDetector(
-                onTap: () => bloc.shareMeme(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ),
-                  child: Icon(
-                    Icons.share,
-                    color: AppColors.darkGrey,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => bloc.saveMeme(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ),
-                  child: Icon(
-                    Icons.save,
-                    color: AppColors.darkGrey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: CreateMemePageContent(),
-          ),
-        ),
+          );
+        }
       ),
     );
   }

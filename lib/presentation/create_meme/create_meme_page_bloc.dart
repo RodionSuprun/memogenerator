@@ -53,6 +53,10 @@ class CreateMemePageBloc {
     });
   }
 
+  final showDialogSubject = BehaviorSubject<bool>.seeded(true);
+
+  Meme? oldMeme;
+
   Stream<MemeText?> observeSelectedMemeText() =>
       selectedMemeTextSubject.distinct();
 
@@ -64,6 +68,7 @@ class CreateMemePageBloc {
   final String id;
 
   Stream<String?> observeMemePath() => memePathSubject.distinct();
+  Stream<bool> observeShowDialog() => showDialogSubject.distinct();
 
   Stream<List<MemeTextWithSelection>> observeMemeTextsWithSelection() {
     return Rx.combineLatest2<List<MemeText>, MemeText?,
@@ -84,6 +89,10 @@ class CreateMemePageBloc {
     memePathSubject.add(selectedMemePath);
     _subscribeToNewMemeTextOffset();
     _subscribeToExistingMeme();
+
+    if (id != null) {
+      showDialogSubject.add(false);
+    }
   }
 
   void _subscribeToExistingMeme() {
@@ -94,6 +103,7 @@ class CreateMemePageBloc {
       if (meme == null) {
         return;
       }
+      oldMeme = meme;
       final memeTexts = meme.texts.map((textWithPosition) {
         return MemeText.createFromTextWithPosition(textWithPosition);
       }).toList();
@@ -149,6 +159,40 @@ class CreateMemePageBloc {
       oldMemeText.copyWithChangedFontSettings(color, fontSize, fontWeight),
     );
     memeTextSubject.add(copiedList);
+    showDialogSubject.add(true);
+  }
+
+  void compareAll() {
+    // final memeTexts = memeTextSubject.value;
+    // final memeTextOffsets = memeTextOffsetsSubject.value;
+    // final textsWithPositions = memeTexts.map((memeText) {
+    //   final memeTextPosition =
+    //   memeTextOffsets.firstWhereOrNull((memeTextOffset) {
+    //     return memeTextOffset.id == memeText.id;
+    //   });
+    //   final position = Position(
+    //     left: memeTextPosition?.offset.dx ?? 0,
+    //     top: memeTextPosition?.offset.dy ?? 0,
+    //   );
+    //   return TextWithPosition(
+    //       id: memeText.id,
+    //       text: memeText.text,
+    //       position: position,
+    //       fontSize: memeText.fontSize,
+    //       color: memeText.color,
+    //       fontWeight: memeText.fontWeight
+    //   );
+    // }).toList();
+    // final newMeme = Meme(
+    //   id: id,
+    //   texts: textsWithPositions,
+    //   memePath: memePathSubject.value,
+    // );
+    // if (newMeme == oldMeme) {
+    //   print("Same meme");
+    // } else {
+    //   print("Not same meme");
+    // }
   }
 
   void saveMeme() {
@@ -181,6 +225,7 @@ class CreateMemePageBloc {
         .asStream()
         .listen((event) {
       print("Meme saved");
+      showDialogSubject.add(false);
     }, onError: (error, stackTrace) {
       print("Error in saveMemeSubscription $error");
     });
@@ -212,17 +257,16 @@ class CreateMemePageBloc {
     if (currentTextOffset != null) {
       copiedMemeTextOffsets.remove(currentTextOffset);
     }
-
+    showDialogSubject.add(true);
     copiedMemeTextOffsets.add(newMemeTextOffset);
     memeTextOffsetsSubject.add(copiedMemeTextOffsets);
-
-    print("Got new object ${newMemeTextOffset}");
   }
 
   void addNewText() {
     final newMemeText = MemeText.create();
     memeTextSubject.add([...memeTextSubject.value, newMemeText]);
     selectedMemeTextSubject.add(newMemeText);
+    showDialogSubject.add(true);
   }
 
   void selectMemeText(final String id) {
@@ -250,6 +294,7 @@ class CreateMemePageBloc {
       oldMemeText.copyWithChangedText(text),
     );
     memeTextSubject.add(copiedList);
+    showDialogSubject.add(true);
   }
 
   bool isMemeTextSelected(final String id) {
@@ -266,6 +311,8 @@ class CreateMemePageBloc {
     final copiedList = [...memeTextSubject.value];
     copiedList.removeWhere((memeText) => memeText.id == id);
     memeTextSubject.add(copiedList);
+    selectedMemeTextSubject.add(null);
+    showDialogSubject.add(true);
   }
 
   void dispose() {
@@ -279,5 +326,6 @@ class CreateMemePageBloc {
     memePathSubject.close();
     screenshotControllerSubject.close();
     shareMemeSubscription?.cancel();
+    showDialogSubject.close();
   }
 }
