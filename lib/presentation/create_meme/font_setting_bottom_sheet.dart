@@ -7,18 +7,18 @@ import 'package:provider/provider.dart';
 
 import 'meme_text_on_canvas.dart';
 
-class FontSettingsBottomSheet extends StatefulWidget {
+class FontSettingBottomSheet extends StatefulWidget {
   final MemeText memeText;
 
-  const FontSettingsBottomSheet({Key? key, required this.memeText})
+  const FontSettingBottomSheet({Key? key, required this.memeText})
       : super(key: key);
 
   @override
-  State<FontSettingsBottomSheet> createState() =>
-      _FontSettingsBottomSheetState();
+  State<FontSettingBottomSheet> createState() =>
+      _FontSettingBottomSheetState();
 }
 
-class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
+class _FontSettingBottomSheetState extends State<FontSettingBottomSheet> {
   late double fontSize;
   late Color color;
   late FontWeight fontWeight;
@@ -366,7 +366,7 @@ class _FontWeightSliderState extends State<FontWeightSlider> {
             child: Slider(
               min: 0,
               max: FontWeight.values.length - 1,
-              divisions: FontWeight.values.length,
+              divisions: FontWeight.values.length - 1,
               value: fontWeightIndex,
               onChanged: (double value) {
                 setState(() {

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:memogenerator/presentation/create_meme/create_meme_page_bloc.dart';
-import 'package:memogenerator/presentation/create_meme/font_settings_bottom_sheet.dart';
+import 'package:memogenerator/presentation/create_meme/font_setting_bottom_sheet.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_selection.dart';
 import 'package:memogenerator/resources/app_colors.dart';
@@ -256,7 +256,7 @@ class BottomMemeText extends StatelessWidget {
                     builder: (context) {
                       return Provider.value(
                         value: bloc,
-                        child: FontSettingsBottomSheet(
+                        child: FontSettingBottomSheet(
                           memeText: memeText.memeText,
                         ),
                       );
