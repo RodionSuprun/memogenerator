@@ -103,19 +103,24 @@ class _CreateMemePageState extends State<CreateMemePage> {
   }
 
   Future<bool?> _showConfirmationExitDialog(BuildContext context) {
-    return showDialog(context: context, builder: (context) {
-      return AlertDialog(
-        title: Text("Хотите выйти"),
-        content: Text("Вы потеряете несохраненные изменения"),
-        actionsPadding: EdgeInsets.symmetric(horizontal: 16),
-        actions: [
-          AppButton(onTap: () => Navigator.of(context).pop(false),
-            text: "Отмена",
-            color: AppColors.darkGrey,),
-          AppButton(onTap: () => Navigator.of(context).pop(true), text: "Выйти")
-        ],
-      );
-    });
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Хотите выйти"),
+            content: Text("Вы потеряете несохраненные изменения"),
+            actionsPadding: EdgeInsets.symmetric(horizontal: 16),
+            actions: [
+              AppButton(
+                onTap: () => Navigator.of(context).pop(false),
+                text: "Отмена",
+                color: AppColors.darkGrey,
+              ),
+              AppButton(
+                  onTap: () => Navigator.of(context).pop(true), text: "Выйти")
+            ],
+          );
+        });
   }
 }
 
@@ -157,7 +162,7 @@ class BottomList extends StatelessWidget {
         initialData: <MemeTextWithSelection>[],
         builder: (context, snapshot) {
           final listItems =
-          snapshot.hasData ? snapshot.data! : <MemeTextWithSelection>[];
+              snapshot.hasData ? snapshot.data! : <MemeTextWithSelection>[];
           return ListView.separated(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             itemCount: listItems.length + 1,
@@ -262,6 +267,15 @@ class BottomMemeText extends StatelessWidget {
                 child: Icon(Icons.font_download_outlined),
               ),
             ),
+            GestureDetector(
+              onTap: () {
+                bloc.removeMemeText(memeText.memeText.id);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(Icons.delete_forever_outlined),
+              ),
+            ),
             SizedBox(
               width: 4,
             ),
@@ -325,19 +339,18 @@ class MemeTexts extends StatelessWidget {
       stream: bloc.observeMemeTextsWithOffsets(),
       builder: (context, snapshot) {
         final memeTextWithOffsets =
-        snapshot.hasData ? snapshot.data! : <MemeTextWithOffset>[];
+            snapshot.hasData ? snapshot.data! : <MemeTextWithOffset>[];
         return LayoutBuilder(
           builder: (context, constraints) {
             return Stack(
               children: memeTextWithOffsets
                   .map(
-                    (memeTextWithOffset) =>
-                    DraggableMemeText(
+                    (memeTextWithOffset) => DraggableMemeText(
                       key: ValueKey(memeTextWithOffset.memeText.id),
                       memeTextWithOffset: memeTextWithOffset,
                       parentConstraints: constraints,
                     ),
-              )
+                  )
                   .toList(),
             );
           },
@@ -435,7 +448,7 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
             stream: bloc.observeSelectedMemeText(),
             builder: (context, snapshot) {
               final MemeText? memeText =
-              snapshot.hasData ? snapshot.data : null;
+                  snapshot.hasData ? snapshot.data : null;
               final selected =
                   widget.memeTextWithOffset.memeText.id == memeText?.id;
               return MemeTextOnCanvas(
@@ -504,7 +517,7 @@ class _EditTextBarState extends State<EditTextBar> {
           stream: bloc.observeSelectedMemeText(),
           builder: (context, snapshot) {
             final MemeText? selectedMemeText =
-            snapshot.hasData ? snapshot.data : null;
+                snapshot.hasData ? snapshot.data : null;
             if (selectedMemeText?.text != controller.text) {
               final newText = selectedMemeText?.text ?? "";
               controller.text = newText;

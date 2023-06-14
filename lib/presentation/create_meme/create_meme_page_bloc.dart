@@ -264,6 +264,12 @@ class CreateMemePageBloc {
     return false;
   }
 
+  void removeMemeText(final String id) {
+    final copiedList = [...memeTextSubject.value];
+    copiedList.removeWhere((memeText) => memeText.id == id);
+    memeTextSubject.add(copiedList);
+  }
+
   void dispose() {
     memeTextSubject.close();
     selectedMemeTextSubject.close();
