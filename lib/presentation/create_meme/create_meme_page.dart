@@ -243,6 +243,11 @@ class BottomMemeText extends StatelessWidget {
               onTap: () {
                 showModalBottomSheet(
                     context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
                     builder: (context) {
                       return Provider.value(
                         value: bloc,

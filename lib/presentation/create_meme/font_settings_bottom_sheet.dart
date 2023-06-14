@@ -25,7 +25,6 @@ class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
   @override
   void initState() {
     super.initState();
-
     fontSize = widget.memeText.fontSize;
     color = widget.memeText.color;
   }
@@ -33,7 +32,6 @@ class _FontSettingsBottomSheetState extends State<FontSettingsBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
