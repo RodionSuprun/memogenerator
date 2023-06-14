@@ -1,20 +1,20 @@
 import 'dart:convert';
 
-import 'package:memogenerator/data/shared_preferences_data.dart';
+import 'package:memogenerator/data/shared_preference_data.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 
 import '../models/meme.dart';
 
 class MemesRepository {
-  final SharedPreferencesData spData;
+  final SharedPreferenceData spData;
 
   final updater = PublishSubject<Null>();
 
   static MemesRepository? _instance;
 
   factory MemesRepository.getInstance() => _instance ??=
-      MemesRepository._internal(SharedPreferencesData.getInstance());
+      MemesRepository._internal(SharedPreferenceData.getInstance());
 
   MemesRepository._internal(this.spData);
 
