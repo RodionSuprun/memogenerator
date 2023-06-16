@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:memogenerator/data/repositories/memes_repository.dart';
 import 'package:memogenerator/data/models/meme.dart';
 import 'package:memogenerator/data/models/position.dart';
@@ -53,13 +54,11 @@ class CreateMemePageBloc {
     });
   }
 
-  Meme? oldMeme;
-
   Stream<MemeText?> observeSelectedMemeText() =>
       selectedMemeTextSubject.distinct();
 
   StreamSubscription<MemeTextOffset?>? newMemeTextOffsetSubscription;
-  StreamSubscription<Meme>? saveMemeSubscription;
+  StreamSubscription<bool>? saveMemeSubscription;
   StreamSubscription<Meme?>? existMemeSubscription;
   StreamSubscription<void>? shareMemeSubscription;
 
@@ -117,10 +116,7 @@ class CreateMemePageBloc {
           final fullImagePath =
               "${docsDirectory.absolute.path}${Platform.pathSeparator}${SaveMemeInteractor.memesPathName}${Platform.pathSeparator}$onlyImageName";
           memePathSubject.add(fullImagePath);
-          oldMeme = meme.copyWithChangedMemePath(fullImagePath);
         });
-      } else {
-        oldMeme = meme;
       }
     }, onError: (error, stackTrace) {});
   }
@@ -156,40 +152,28 @@ class CreateMemePageBloc {
     memeTextSubject.add(copiedList);
   }
 
-  bool compareAll() {
-    final memeTexts = memeTextSubject.value;
-    final memeTextOffsets = memeTextOffsetsSubject.value;
-    final textsWithPositions = memeTexts.map((memeText) {
-      final memeTextPosition =
-      memeTextOffsets.firstWhereOrNull((memeTextOffset) {
-        return memeTextOffset.id == memeText.id;
-      });
-      final position = Position(
-        left: memeTextPosition?.offset.dx ?? 0,
-        top: memeTextPosition?.offset.dy ?? 0,
-      );
-      return TextWithPosition(
-          id: memeText.id,
-          text: memeText.text,
-          position: position,
-          fontSize: memeText.fontSize,
-          color: memeText.color,
-          fontWeight: memeText.fontWeight
+  Future<bool> isAllSaved() async {
+    final savedMeme = await MemesRepository.getInstance().getMeme(id);
+    if (savedMeme == null) {
+      return false;
+    }
+    final savedMemeTexts = savedMeme.texts.map((textWithPosition) {
+      return MemeText.createFromTextWithPosition(textWithPosition);
+    }).toList();
+    final savedMemeTextOffsets = savedMeme.texts.map((textWithPosition) {
+      return MemeTextOffset(
+        id: textWithPosition.id,
+        offset: Offset(
+          textWithPosition.position.left,
+          textWithPosition.position.top,
+        ),
       );
     }).toList();
-    final newMeme = Meme(
-      id: id,
-      texts: textsWithPositions,
-      memePath: memePathSubject.value,
-    );
-    print("new meme = $newMeme");
-    print("old meme = $oldMeme");
-    if (newMeme == oldMeme) {
-      print("Same meme");
-    } else {
-      print("Not same meme");
-    }
-    return newMeme == oldMeme;
+
+    return DeepCollectionEquality.unordered()
+            .equals(savedMemeTexts, memeTextSubject.value) &&
+        DeepCollectionEquality.unordered()
+            .equals(savedMemeTextOffsets, memeTextOffsetsSubject.value);
   }
 
   void saveMeme() {
@@ -205,14 +189,14 @@ class CreateMemePageBloc {
         top: memeTextPosition?.offset.dy ?? 0,
       );
       return TextWithPosition(
-        id: memeText.id,
-        text: memeText.text,
-        position: position,
-        fontSize: memeText.fontSize,
-        color: memeText.color,
-        fontWeight: memeText.fontWeight
-      );
+          id: memeText.id,
+          text: memeText.text,
+          position: position,
+          fontSize: memeText.fontSize,
+          color: memeText.color,
+          fontWeight: memeText.fontWeight);
     }).toList();
+    print(textsWithPositions);
     saveMemeSubscription = SaveMemeInteractor.getInstance()
         .saveMeme(
             id: id,
@@ -222,7 +206,6 @@ class CreateMemePageBloc {
         .asStream()
         .listen((savedMeme) {
       print("Meme saved");
-      oldMeme = savedMeme;
     }, onError: (error, stackTrace) {
       print("Error in saveMemeSubscription $error");
     });

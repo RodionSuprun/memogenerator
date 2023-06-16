@@ -14,8 +14,7 @@ class FontSettingBottomSheet extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<FontSettingBottomSheet> createState() =>
-      _FontSettingBottomSheetState();
+  State<FontSettingBottomSheet> createState() => _FontSettingBottomSheetState();
 }
 
 class _FontSettingBottomSheetState extends State<FontSettingBottomSheet> {
@@ -324,14 +323,11 @@ class FontWeightSlider extends StatefulWidget {
 
 class _FontWeightSliderState extends State<FontWeightSlider> {
   late FontWeight fontWeight;
-  late double fontWeightIndex;
 
   @override
   void initState() {
     super.initState();
     fontWeight = widget.initialFontWeight;
-    fontWeightIndex = FontWeight.values.indexOf(fontWeight).toDouble();
-    print(fontWeightIndex);
   }
 
   @override
@@ -367,13 +363,12 @@ class _FontWeightSliderState extends State<FontWeightSlider> {
               min: 0,
               max: FontWeight.values.length - 1,
               divisions: FontWeight.values.length - 1,
-              value: fontWeightIndex,
+              value: fontWeight.index.toDouble(),
               onChanged: (double value) {
                 setState(() {
-                  fontWeightIndex = value;
-                  print(FontWeight.values[fontWeightIndex.toInt()]);
-                  widget.changeFontWeight(
-                      FontWeight.values[fontWeightIndex.toInt()]);
+                  fontWeight = FontWeight.values.firstWhere(
+                      (fontWeight) => fontWeight.index == value.toInt());
+                  widget.changeFontWeight(fontWeight);
                 });
               },
             ),

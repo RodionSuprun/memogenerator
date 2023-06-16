@@ -43,7 +43,9 @@ class _CreateMemePageState extends State<CreateMemePage> {
       value: bloc,
       child: WillPopScope(
         onWillPop: () async {
-          final goBack = bloc.compareAll() == false ? await _showConfirmationExitDialog(context) : true;
+          final goBack = await bloc.isAllSaved() == false
+              ? await _showConfirmationExitDialog(context)
+              : true;
           return goBack ?? false;
         },
         child: Scaffold(
@@ -244,7 +246,7 @@ class BottomMemeText extends StatelessWidget {
             SizedBox(
               width: 4,
             ),
-            GestureDetector(
+            BottomMemeTextAction(
               onTap: () {
                 showModalBottomSheet(
                     context: context,
@@ -262,25 +264,41 @@ class BottomMemeText extends StatelessWidget {
                       );
                     });
               },
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(Icons.font_download_outlined),
-              ),
+              icon: Icons.font_download_outlined,
             ),
-            GestureDetector(
+            BottomMemeTextAction(
               onTap: () {
                 bloc.removeMemeText(memeText.memeText.id);
               },
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(Icons.delete_forever_outlined),
-              ),
+              icon: Icons.delete_forever_outlined,
             ),
             SizedBox(
               width: 4,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class BottomMemeTextAction extends StatelessWidget {
+  const BottomMemeTextAction({
+    Key? key,
+    required this.onTap,
+    required this.icon,
+  }) : super(key: key);
+
+  final VoidCallback onTap;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Icon(icon),
       ),
     );
   }

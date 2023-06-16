@@ -48,14 +48,13 @@ Color? colorFromJson(final String? colorString) {
   return intColor == null ? null : Color(intColor);
 }
 
-String? fontWeightToJson(final FontWeight? fontWeight) {
-  return fontWeight == null ? null : fontWeight.toString();
+int? fontWeightToJson(final FontWeight? fontWeight) {
+  return fontWeight == null ? null : fontWeight.index;
 }
 
-FontWeight? fontWeightFromJson(final String? fontWeightString) {
-  if (fontWeightString == null) {
+FontWeight? fontWeightFromJson(final int? fontWeightIndex) {
+  if (fontWeightIndex == null) {
     return null;
   }
-  final fontWeightValue = int.tryParse(fontWeightString.split("w").last);
-  return fontWeightValue == null ? null : FontWeight.values[(fontWeightValue / 100).round() - 1];
+  return FontWeight.values.firstWhere((fontWeight) => fontWeight.index == fontWeightIndex);
 }
