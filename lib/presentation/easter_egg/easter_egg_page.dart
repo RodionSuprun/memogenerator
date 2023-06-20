@@ -31,7 +31,7 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
   late Animation<double> rocketScaleAnimation;
   late Animation<double> fireRotationAnimation;
   late Animation<double> glowScaleAnimation;
-  late Animation<double> opacityAnimation;
+  late Animation<Offset> slideAnimation;
 
   static const animationDurationSecond = 10;
 
@@ -82,9 +82,9 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
       ),
     );
 
-    opacityAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
+    slideAnimation = Tween<Offset>(
+      begin: Offset(0, 0),
+      end: Offset(0, 1),
     ).animate(
       CurvedAnimation(
         parent: controller,
@@ -159,8 +159,8 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
             children: [
               Align(
                 alignment: Alignment.bottomCenter,
-                child: FadeTransition(
-                  opacity: opacityAnimation,
+                child: SlideTransition(
+                  position: slideAnimation,
                   child: Container(
                     height: 100,
                     width: double.infinity,
