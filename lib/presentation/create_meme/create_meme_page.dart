@@ -63,29 +63,17 @@ class _CreateMemePageState extends State<CreateMemePage> {
             ),
             bottom: EditTextBar(),
             actions: [
-              GestureDetector(
-                onTap: () => bloc.shareMeme(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ),
-                  child: Icon(
-                    Icons.share,
-                    color: AppColors.darkGrey,
-                  ),
-                ),
+              AnimatedIconButton(
+                onTap: () {
+                  bloc.shareMeme();
+                },
+                icon: Icons.share,
               ),
-              GestureDetector(
-                onTap: () => bloc.saveMeme(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ),
-                  child: Icon(
-                    Icons.save,
-                    color: AppColors.darkGrey,
-                  ),
-                ),
+              AnimatedIconButton(
+                onTap: () {
+                  bloc.saveMeme();
+                },
+                icon: Icons.save,
               ),
             ],
           ),
@@ -123,6 +111,56 @@ class _CreateMemePageState extends State<CreateMemePage> {
             ],
           );
         });
+  }
+}
+
+class AnimatedIconButton extends StatefulWidget {
+  const AnimatedIconButton({
+    Key? key,
+    required this.onTap,
+    required this.icon,
+  }) : super(key: key);
+
+  final VoidCallback onTap;
+  final IconData icon;
+
+  @override
+  State<AnimatedIconButton> createState() => _AnimatedIconButtonState();
+}
+
+class _AnimatedIconButtonState extends State<AnimatedIconButton> {
+  double scale = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          scale = 1.5;
+        });
+        widget.onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+        ),
+        child: AnimatedScale(
+          duration: Duration(milliseconds: 200),
+          scale: scale,
+          curve: Curves.bounceInOut,
+          onEnd: () {
+            setState(() {
+              scale = 1.0;
+            });
+          },
+          child: Icon(
+            widget.icon,
+            color: AppColors.darkGrey,
+            size: 24,
+          ),
+        ),
+      ),
+    );
   }
 }
 

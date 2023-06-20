@@ -5,8 +5,9 @@ import 'package:rxdart/rxdart.dart';
 import 'package:collection/collection.dart';
 
 import '../models/meme.dart';
+import 'list_with_ids_reactive_repository.dart';
 
-class MemesRepository {
+class MemesRepository extends ListWithIdsReactiveRepository<Meme> {
   final SharedPreferenceData spData;
 
   final updater = PublishSubject<Null>();
@@ -18,55 +19,94 @@ class MemesRepository {
 
   MemesRepository._internal(this.spData);
 
-  Future<bool> addToMemes(final Meme newMeme) async {
-    final memes = await getMemes();
+  @override
+  Meme convertFromString(String rawItem) {
+    return Meme.fromJson(json.decode(rawItem));
+  }
+
+  @override
+  String convertToString(Meme item) {
+    return json.encode(item.toJson());
+  }
+
+  @override
+  getId(Meme item) {
+    return item.id;
+  }
+
+  @override
+  Future<List<String>> getRawData() async {
+    return await spData.getMemes();
+  }
+
+  @override
+  Future<bool> saveRawData(List<String> items) async {
+    updater.add(null);
+    return await spData.setMemes(items);
+  }
+
+  @override
+  Future<bool> addItem(Meme newItem) async {
+    final memes = await getItems();
+    memes.add(newItem);
+    return setItems(memes);
+  }
+
+  @override
+  Future<bool> addItemOrReplaceById(Meme newItem) async {
+    final memes = await getItems();
 
     final elementIndex =
-        memes.indexWhere((element) => element.id == newMeme.id);
+        memes.indexWhere((element) => element.id == newItem.id);
     if (elementIndex == -1) {
-      memes.add(newMeme);
+      memes.add(newItem);
     } else {
       memes.removeAt(elementIndex);
-      memes.insert(elementIndex, newMeme);
+      memes.insert(elementIndex, newItem);
       // memes[elementIndex] = newMeme;
     }
-    return _setMemes(memes);
+    return setItems(memes);
   }
 
-  Future<bool> removeFromMemes(final String id) async {
-    final memes = await getMemes();
-    memes.removeWhere((meme) => meme.id == id);
-    return _setMemes(memes);
+  @override
+  Future<List<Meme>> getItems() async {
+    final rawMemes = await getRawData();
+    return rawMemes.map((rawMeme) => convertFromString(rawMeme)).toList();
   }
 
-  Future<Meme?> getMeme(final String id) async {
-    final memes = await getMemes();
+  @override
+  Future<bool> setItems(List<Meme> items) {
+    final rawMemes = items.map((item) => convertToString(item)).toList();
+    return saveRawData(rawMemes);
+  }
+
+  @override
+  Future<Meme?> getItemById(id) async {
+    final memes = await getItems();
     return memes.firstWhereOrNull((meme) {
       return meme.id == id;
     });
   }
 
-  Stream<List<Meme>> observeMemes() async* {
-    yield await getMemes();
+  @override
+  Stream<List<Meme>> observeItems() async* {
+    yield await getItems();
     await for (final _ in updater) {
-      yield await getMemes();
+      yield await getItems();
     }
   }
 
-  Future<List<Meme>> getMemes() async {
-    final rawMemes = await spData.getMemes();
-    return rawMemes
-        .map((rawMeme) => Meme.fromJson(json.decode(rawMeme)))
-        .toList();
+  @override
+  Future<bool> removeFromItemsById(id) async {
+    final memes = await getItems();
+    memes.removeWhere((meme) => meme.id == id);
+    return setItems(memes);
   }
 
-  Future<bool> _setMemes(final List<Meme> memes) async {
-    final rawMemes = memes.map((meme) => json.encode(meme.toJson())).toList();
-    return _setRawMemes(rawMemes);
-  }
-
-  Future<bool> _setRawMemes(final List<String> rawMemes) async {
-    updater.add(null);
-    return await spData.setMemes(rawMemes);
+  @override
+  Future<bool> removeItem(Meme item) async {
+    final memes = await getItems();
+    memes.removeWhere((meme) => meme.id == item.id);
+    return setItems(memes);
   }
 }

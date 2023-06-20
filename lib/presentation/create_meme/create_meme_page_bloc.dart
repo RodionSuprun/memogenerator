@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:memogenerator/data/repositories/memes_repository.dart';
 import 'package:memogenerator/data/models/meme.dart';
 import 'package:memogenerator/data/models/position.dart';
@@ -89,7 +88,7 @@ class CreateMemePageBloc {
 
   void _subscribeToExistingMeme() {
     existMemeSubscription = MemesRepository.getInstance()
-        .getMeme(this.id)
+        .getItemById(this.id)
         .asStream()
         .listen((meme) {
       if (meme == null) {
@@ -153,7 +152,7 @@ class CreateMemePageBloc {
   }
 
   Future<bool> isAllSaved() async {
-    final savedMeme = await MemesRepository.getInstance().getMeme(id);
+    final savedMeme = await MemesRepository.getInstance().getItemById(id);
     if (savedMeme == null) {
       return false;
     }
