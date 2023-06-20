@@ -31,6 +31,7 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
   late Animation<double> rocketScaleAnimation;
   late Animation<double> fireRotationAnimation;
   late Animation<double> glowScaleAnimation;
+  late Animation<double> opacityAnimation;
 
   static const animationDurationSecond = 10;
 
@@ -76,6 +77,20 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
         curve: Interval(
           0.3,
           0.8,
+          curve: Curves.easeIn,
+        ),
+      ),
+    );
+
+    opacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.3,
+          0.5,
           curve: Curves.easeIn,
         ),
       ),
@@ -144,13 +159,16 @@ class _RocketAnimationBodyState extends State<RocketAnimationBody>
             children: [
               Align(
                 alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 100,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.green[700],
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.elliptical(constraints.maxWidth, 200),
+                child: FadeTransition(
+                  opacity: opacityAnimation,
+                  child: Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.green[700],
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.elliptical(constraints.maxWidth, 200),
+                      ),
                     ),
                   ),
                 ),
