@@ -23,8 +23,7 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   late MainBloc bloc;
   late TabController controller;
-
-  int index = 0;
+  double tabIndex = 0;
 
   @override
   void initState() {
@@ -32,9 +31,9 @@ class _MainPageState extends State<MainPage>
     bloc = MainBloc();
     controller = TabController(length: 2, vsync: this);
 
-    controller.addListener(() {
+    controller.animation!.addListener(() {
       setState(() {
-        index = controller.index;
+        tabIndex = controller.animation!.value;
       });
     });
   }
@@ -86,7 +85,15 @@ class _MainPageState extends State<MainPage>
             ),
           ),
           backgroundColor: Colors.white,
-          floatingActionButton: index == 0 ? CreateMemeFab() : CreateTemplateFab(),
+          floatingActionButton: tabIndex <= 0.5
+              ? Transform.scale(
+                  scale: 1 - tabIndex / 0.5,
+                  child: CreateMemeFab(),
+                )
+              : Transform.scale(
+                  scale: (tabIndex - 0.5) / 0.5,
+                  child: CreateTemplateFab(),
+                ),
           body: TabBarView(
             controller: controller,
             children: [
@@ -261,41 +268,18 @@ class MemeGridItem extends StatelessWidget {
         child: Stack(
           children: [
             imageFile.existsSync()
-                ? Image.file(File(memeThumbnail.fullImageUrl,))
+                ? Image.file(File(
+                    memeThumbnail.fullImageUrl,
+                  ))
                 : Text(memeThumbnail.memeId),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  right: 4,
-                  bottom: 4,
-                ),
-                child: GestureDetector(
-                  onTap: () async {
-                    final acceptRemove =
-                        await _showConfirmationDeleteMemeDialog(context);
-                    if (acceptRemove == true) {
-                      bloc.deleteMeme(memeThumbnail.memeId);
-                    }
-                  },
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.darkGrey38,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 11,
-                        horizontal: 13,
-                      ),
-                      child: Icon(
-                        Icons.delete_outline,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ),
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: DeleteButton(
+                itemName: "мем",
+                onDeleteAction: () {
+                  bloc.deleteMeme(memeThumbnail.memeId);
+                },
               ),
             )
           ],
@@ -312,6 +296,67 @@ class MemeGridItem extends StatelessWidget {
             title: Text("Удалить мем?"),
             content: Text(
               "Выбранный мем будет удалён навсегда",
+              style: TextStyle(
+                color: AppColors.darkGrey86,
+              ),
+            ),
+            actionsPadding: EdgeInsets.symmetric(horizontal: 16),
+            actions: [
+              AppButton(
+                onTap: () => Navigator.of(context).pop(false),
+                text: "Отмена",
+                color: AppColors.darkGrey,
+              ),
+              AppButton(
+                  onTap: () => Navigator.of(context).pop(true), text: "Удалить")
+            ],
+          );
+        });
+  }
+}
+
+class DeleteButton extends StatelessWidget {
+  const DeleteButton({
+    Key? key,
+    required this.itemName,
+    required this.onDeleteAction,
+  }) : super(key: key);
+
+  final String itemName;
+  final VoidCallback onDeleteAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final acceptRemove = await _showConfirmationDeleteMemeDialog(context);
+        if (acceptRemove == true) {
+          onDeleteAction();
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.darkGrey38,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.delete_outline,
+          color: Colors.white,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showConfirmationDeleteMemeDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Удалить $itemName?"),
+            content: Text(
+              "Выбранный $itemName будет удалён навсегда",
               style: TextStyle(
                 color: AppColors.darkGrey86,
               ),
@@ -405,39 +450,14 @@ class TemplateGridItem extends StatelessWidget {
                     imageFile,
                   )
                 : Text(templateFull.id),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  right: 4,
-                  bottom: 4,
-                ),
-                child: GestureDetector(
-                  onTap: () async {
-                    final acceptRemove =
-                        await _showConfirmationDeleteTemplateDialog(context);
-                    if (acceptRemove == true) {
-                      bloc.deleteTemplate(templateFull.id);
-                    }
-                  },
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.darkGrey38,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 11,
-                        horizontal: 13,
-                      ),
-                      child: Icon(
-                        Icons.delete_outline,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ),
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: DeleteButton(
+                itemName: "шаблон",
+                onDeleteAction: () {
+                  bloc.deleteTemplate(templateFull.id);
+                },
               ),
             ),
           ],
